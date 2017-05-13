@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>on it</title>
+</head>
+<body>
+
+{% if error %}
+	{{error}}
+{% endif %}
+<br>
+<br>
+
+	<form action="{{ url_for('post_location')}}" method="post">
+	  Name of the place :<br>
+	  <input type="text" name="place" >
+	  <br>
+	  Latitude : <br>
+	  <input type="text" name="lat" required>
+	  <br>
+	  Longitude : <br>
+	  <input type="text" name="lon" required>
+	  <br><br>
+	  <input type="submit" value="Submit">
+	</form> 
+</body>
+</html>
