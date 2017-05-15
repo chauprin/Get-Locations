@@ -5,7 +5,7 @@ Includes authentication using Grant Type = Client Credentials
 Implemented using Python, Flask, PostgreSQL and data migration     
      
 Usage :      
-Make sure you have PostgreSQL and its extensions postgis, cube, earthdistance installed and created database "my_db1" using "CREATE DATABASE my_db1;" in psql terminal       
+Make sure you have PostgreSQL and its extensions postgis, cube, earthdistance installed and make sure your databse configurations are matching with this application's database configuartions (see app.py)        
 Browse to the project directory in terminal and run the following commands for data migrations if not already done :         
 1. python manage.py db init      
 2. python manage.py db migrate      
