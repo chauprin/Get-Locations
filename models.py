@@ -41,7 +41,7 @@ class clients(BaseModel, db.Model):
     __tablename__ = 'clients'
 
     s_no = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String)
-    email = db.Column(db.String)
+    application_name = db.Column(db.String)
+    application_website = db.Column(db.String)
     client_id = db.Column(db.String)
     client_secret = db.Column(db.String) 
