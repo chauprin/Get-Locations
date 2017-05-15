@@ -1,7 +1,7 @@
 # Get-Locations
 A REST API to get nearby points to a particular latitude longitude using extensions of postgres and without them also.    
     
-Includes authentication using grant type = client credentials     
+Includes authentication using Grant Type = Client Credentials     
 Implemented using Python, Flask, PostgreSQL and data migration     
      
 Usage :      
