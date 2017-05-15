@@ -56,7 +56,7 @@ def register():
 	else:
 		return jsonify("Bad Request. Only post requests are allowed on this endpoint.")
 
-#POST API, No authorization required to post
+#POST API
 @app.route('/post_location/arguments', methods = ['GET','POST'])
 def post_location():
 	if request.method == "POST":
