@@ -25,6 +25,9 @@ db.init_app(app)
 conn = psycopg2.connect(database = 'my_db1', user = 'postgres', password = 'password', host = 'localhost')
 curs = conn.cursor()
 
+latitude = 30.31
+longitude = 78.03
+
 #Home
 @app.route('/')
 def home():
@@ -35,18 +38,18 @@ def home():
 def register():
 	if request.method == "POST":
 		conn.commit()
-		name = request.args.get("name")
-		email = request.args.get("email")
+		application_name = request.args.get("application_name")
+		application_website = request.args.get("application_website")
 		client_id = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
 		client_secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))    	
-		if name == "" or email == "":
+		if application_name == "" or application_website == "":
 			return jsonify("Empty fields are not allowed")
-		curs.execute("insert into clients (name, email, client_id, client_secret) values(%s, %s, %s, %s);",[name, email, client_id, client_secret])
+		curs.execute("insert into clients (application_name, application_website, client_id, client_secret) values(%s, %s, %s, %s);",[application_name, application_website, client_id, client_secret])
 		conn.commit()
 		#message = "Your CLIENT_ID = %s and your CLIENT_SECRET = %s. Please note these. You are gonna need them for using this api" %(client_id, client_secret)
 		return jsonify({"Note": "Please note the client_id and client_secret. You will need them for get requests.",
-						"Credentials" :	{"name" : name, 
-										"email" : email,
+						"Credentials" :	{"application_name" : application_name, 
+										"application_website" : application_website,
 										"client_id" : client_id,
 										"client_secret" : client_secret
 							}
@@ -88,8 +91,6 @@ def get_using_postgres():
 	all_results = curs.fetchone()
 	if client_secret == all_results[0]:
 		conn.commit()
-		latitude = 30.31
-		longitude = 78.03
 		start_time = timeit.default_timer()
 		curs.execute("select * from my_points where (point(lon,lat) <@> point(%s,%s)) <= 5/1.6;",[longitude,latitude])
 		elapsed = timeit.default_timer() - start_time
@@ -107,11 +108,9 @@ def get_using_self():
 	client_secret = request. args.get("client_secret")
 	curs.execute("select client_secret from clients where client_id = %s;",[client_id])
 	all_results = curs.fetchone()
-	
+
 	if client_secret == all_results[0]:
 		conn.commit()
-		latitude = 30.31
-		longitude = 78.03
 		start_time = timeit.default_timer()
 		curs.execute("select * from ( select s_no, place, lat, lon, (3959 * acos (cos ( radians(%s) ) * cos( radians( lat ) ) * cos( radians( lon ) - radians(%s) ) + sin ( radians(%s) ) * sin( radians( lat ) ) ) ) AS distance FROM my_points order by distance) items where distance < 5/1.6;",[latitude,longitude,latitude])
 		elapsed = timeit.default_timer() - start_time
