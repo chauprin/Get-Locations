@@ -25,42 +25,62 @@ db.init_app(app)
 conn = psycopg2.connect(database = 'my_db1', user = 'postgres', password = 'password', host = 'localhost')
 curs = conn.cursor()
 
-#Endpoint for generating access parameters for external apps to use this api
-@app.route('/', methods = ['GET', 'POST'])
+#Home
+@app.route('/')
 def home():
+	return jsonify("Nothing here. Please go to the get, post or register endpoint.")
+
+#Endpoint for generating access parameters for external apps to use this api
+@app.route('/register/arguments', methods = ['GET', 'POST'])
+def register():
 	if request.method == "POST":
 		conn.commit()
-		name = request.form['name']
-		email = request.form['email']
+		name = request.args.get("name")
+		email = request.args.get("email")
 		client_id = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
 		client_secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))    	
 		if name == "" or email == "":
-			return render_template("home.html", error = "Empty fields not allowed")
+			return jsonify("Empty fields are not allowed")
 		curs.execute("insert into clients (name, email, client_id, client_secret) values(%s, %s, %s, %s);",[name, email, client_id, client_secret])
 		conn.commit()
-		message = "Your CLIENT_ID = %s and your CLIENT_SECRET = %s. Please note these. You are gonna need them for using this api" %(client_id, client_secret)
-		return render_template('home.html', message = message)
+		#message = "Your CLIENT_ID = %s and your CLIENT_SECRET = %s. Please note these. You are gonna need them for using this api" %(client_id, client_secret)
+		return jsonify({"Note": "Please note the client_id and client_secret. You will need them for get requests.",
+						"Credentials" :	{"name" : name, 
+										"email" : email,
+										"client_id" : client_id,
+										"client_secret" : client_secret
+							}
+						}
+					
+					)
 	else:
-		return render_template("home.html")
+		return jsonify("Bad Request. Only post requests are allowed on this endpoint.")
 
 #POST API, No authorization required to post
-@app.route('/post_location', methods = ['GET','POST'])
+@app.route('/post_location/arguments', methods = ['GET','POST'])
 def post_location():
 	if request.method == "POST":
 		conn.commit()
-		place = request.form['place']
-		lat = request.form['lat']
-		lon = request.form['lon']
-		if lat == "" or lon == "" or place == "":
-			return render_template("index.html", error = "Empty fields not allowed")	
-		curs.execute("insert into my_points (place, lat, lon) values(%s,%s,%s);",[place, lat, lon])
-		conn.commit()
-		return redirect(url_for('post_location'))
+		client_id = request.args.get("client_id")
+		client_secret = request.args.get("client_secret")
+		curs.execute("select client_secret from clients where client_id = %s;",[client_id])
+		all_results = curs.fetchone()
+		if client_secret == all_results[0]:
+			place = request.args.get("place")
+			lat = request.args.get("lat")
+			lon = request.args.get("lon")
+			if lat == "" or lon == "" or place == "":
+				return jsonify("Empty fields not allowed")	
+			curs.execute("insert into my_points (place, lat, lon) values(%s,%s,%s);",[place, lat, lon])
+			conn.commit()
+			return jsonify("Row Inserted.")
+		else:
+			return jsonify("Bad Authentication.")
 	else:
-		return render_template("index.html")
+		return jsonify("Bad request. Only POST requests are allowed on this endpoint.")
 
 #GET_USING_POSTGRES API
-@app.route("/get_using_postgres/auth")
+@app.route("/get_using_postgres/arguments")
 def get_using_postgres():
 	client_id = request.args.get("client_id")
 	client_secret = request. args.get("client_secret")
@@ -75,12 +95,13 @@ def get_using_postgres():
 		elapsed = timeit.default_timer() - start_time
 		print "***--- Time taken for get_using_postgres = %s ---***" %(elapsed)
 		rows=curs.fetchall()
-		return jsonify(rows)
+		return jsonify({"Time taken" : elapsed,
+						"results" : rows})
 	else:
 		return jsonify("Bad Authentication")
 
 #GET_USING_SELF
-@app.route("/get_using_self/auth")
+@app.route("/get_using_self/arguments")
 def get_using_self():
 	client_id = request.args.get("client_id")
 	client_secret = request. args.get("client_secret")
@@ -96,7 +117,8 @@ def get_using_self():
 		elapsed = timeit.default_timer() - start_time
 		print "***--- Time taken for get_using_self = %s ---***" %(elapsed)
 		rows = curs.fetchall()
-		return jsonify(rows)
+		return jsonify({"Time taken" : elapsed,
+						"results" : rows})
 	else:
 		return jsonify("Bad Authentication")
 
